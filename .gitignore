@@ -1,6 +1,8 @@
-sample/
 .venv/
-*.egg-info/
 __pycache__/
 build/
 dist/
+sample/
+
+*.egg-info/
+config.json
