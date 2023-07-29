@@ -3,6 +3,7 @@ import click
 import re
 import json
 import hashlib
+import pathlib
 
 
 def calculate_file_hash(file_path, hash_algorithm='sha256'):
@@ -83,11 +84,23 @@ def create_meta_file(folder, currentName, newName):
             json.dump(metadata, f)
         click.secho("It's a " + type)
 
+def delete_folder(path):
+    elements = os.listdir(path)
+    if len(elements) == 0:
+        pathlib.Path.rmdir(path)
+        return True
+    elif len(elements) == 1 and elements[0] == "meta.json":
+        os.remove(path + "/meta.json")
+        pathlib.Path.rmdir(path)
+        return True
+    return False
+
 
 @click.command()
 @click.option("--folder", default='.', help='This is the folder which the content will be cleaned')
-@click.option("--apply", "-d", is_flag=True, default=False, help="When enable, apply modification")
-def cli(folder, apply):
+@click.option("--apply", "-a", is_flag=True, default=False, help="When enable, apply modification")
+@click.option("--delete", "-d", is_flag=True, default=False, help="Delete empty folders")
+def cli(folder, apply, delete):
     """Allow to clean folder elements' name"""
     click.secho("===== ## HORN CLEANER ## ======", fg="blue")
     data = read_cli_config()
@@ -104,6 +117,7 @@ def cli(folder, apply):
     skip = 0
     error = 0
     ignore = 0
+    remove = 0
     click.secho(f"{originalElements} in total")
     for element in originalElements:
         if os.path.splitext(element)[1] == ".json":
@@ -114,10 +128,16 @@ def cli(folder, apply):
         click.secho("Original : \t" + element, fg="yellow")
         alteredElement = element
         if os.path.isdir(f"./{folder}/{element}"): # If DIRECTORY
-            alteredElement = apply_folder_rules(alteredElement, folderRules)
+            if delete and delete_folder(f"./{folder}/{element}"):
+                remove = remove + 1
+                continue
+            else:
+                alteredElement = apply_folder_rules(alteredElement, folderRules)
         elif os.path.isfile(f"./{folder}/{element}"): # IF FILE
             alteredElement = apply_file_rules(alteredElement, fileRules, sets)
+
         click.secho("New : \t\t" + alteredElement, fg="blue")
+
         if apply:
             create_meta_file(folder, element, alteredElement)
             if os.path.exists(f"{folder}/{alteredElement}") or alteredElement == element:
@@ -128,9 +148,11 @@ def cli(folder, apply):
                     click.secho("New : " + alteredElement, fg="green")
                 else:
                     error = error + 1
+            
         
     click.secho(f"{change} element(s) changed", fg="green")
     click.secho(f"{skip} element(s) skipped", fg="blue")
+    click.secho(f"{remove} element(s) deleted", fg="blue")
     click.secho(f"{error} element(s) failed", fg="red")
     click.secho(f"{ignore} element(s) ignored", fg="white")
 
