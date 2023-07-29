@@ -103,78 +103,35 @@ def cli(folder, apply):
     change = 0
     skip = 0
     error = 0
+    ignore = 0
     click.secho(f"{originalElements} in total")
     for element in originalElements:
+        if os.path.splitext(element)[1] == ".json":
+            ignore = ignore + 1
+            continue
+
         click.secho("=====================", fg="blue")
-        click.secho("Original : " + element, fg="blue")
+        click.secho("Original : \t" + element, fg="yellow")
         alteredElement = element
         if os.path.isdir(f"./{folder}/{element}"): # If DIRECTORY
             alteredElement = apply_folder_rules(alteredElement, folderRules)
         elif os.path.isfile(f"./{folder}/{element}"): # IF FILE
             alteredElement = apply_file_rules(alteredElement, fileRules, sets)
-        create_meta_file(folder, element, alteredElement)
-        if os.path.exists(f"{folder}/{alteredElement}") or alteredElement == element:
-            skip = skip + 1
-        else:
-            os.rename(f"{folder}/{element}",f"{folder}/{alteredElement}")
-            if os.path.exists(f"{folder}/{element}") == False and os.path.exists(f"{folder}/{alteredElement}"):
-                click.secho("New : " + alteredElement, fg="green")
+        click.secho("New : \t\t" + alteredElement, fg="blue")
+        if apply:
+            create_meta_file(folder, element, alteredElement)
+            if os.path.exists(f"{folder}/{alteredElement}") or alteredElement == element:
+                skip = skip + 1
             else:
-                error = error + 1
-    
+                os.rename(f"{folder}/{element}",f"{folder}/{alteredElement}")
+                if os.path.exists(f"{folder}/{element}") == False and os.path.exists(f"{folder}/{alteredElement}"):
+                    click.secho("New : " + alteredElement, fg="green")
+                else:
+                    error = error + 1
+        
     click.secho(f"{change} element(s) changed", fg="green")
     click.secho(f"{skip} element(s) skipped", fg="blue")
     click.secho(f"{error} element(s) failed", fg="red")
+    click.secho(f"{ignore} element(s) ignored", fg="white")
 
     return
-    print('Content of \'%s\' folder will be cleaned' % folder)
-    longAssRegex = "(((\(([^)]+)\))|\s|(\[([^]]+)\])|(\{([^}]+)\}))*)"
-    newElements = []
-
-
-    for element in originalElements:
-        alteredElement = element
-        #alteredElement = re.sub("^\(C\d*\)","", alteredElement)
-        #alteredElement = re.sub("\.torrent$","", alteredElement)
-        #alteredElement = re.sub("\【(.*?)\】","", alteredElement)
-        #alteredElement = re.sub("\「(.*?)\」","", alteredElement)
-        #alteredElement = re.sub(f"{longAssRegex}$","", alteredElement)
-        #alteredElement = re.sub(f"^{longAssRegex}","", alteredElement)
-        alteredElement = alteredElement.strip()
-        
-        if alteredElement == "" or alteredElement in newElements:
-            newElements.append(element)
-        else:
-            newElements.append(alteredElement)
-    if apply == False:
-        for i in range(len(originalElements)):
-            click.secho(originalElements[i], fg='red')
-            click.secho(newElements[i], fg='green')
-            click.echo("========================")
-    else:
-        skip = 0
-        for i in range(len(originalElements)):
-            if originalElements[i] == newElements[i]: 
-                skip+= 1
-                continue
-            click.secho(originalElements[i], fg='red')
-            if os.path.exists(f"{folder}/{originalElements[i]}/meta.json"):
-                click.echo("Meta file exists...")
-            else:
-                click.echo("Creating meta...")
-                metadata = {}
-                metadata["original_name"] = originalElements[i]
-                metadata["new_name"] = newElements[i]
-                with open(f"{folder}/{originalElements[i]}/meta.json", "w") as f:
-                    json.dump(metadata, f)
-            click.echo("Renaming...")
-            if os.path.exists(f"{folder}/{newElements[i]}"):
-                click.secho(f"Operation aborted, {newElements[i]} already present", fg='red')
-                continue
-            os.rename(f"{folder}/{originalElements[i]}",f"{folder}/{newElements[i]}")
-            if os.path.exists(f"{folder}/{newElements[i]}"):
-                click.secho(f"Folder successfully rename to {newElements[i]} already present", fg='green')
-            click.echo("========================")
-        click.secho(f"Skip: {skip}", fg='blue')
-
-            
