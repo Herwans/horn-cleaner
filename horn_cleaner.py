@@ -100,8 +100,12 @@ def cli(folder, apply):
     sets = data['extension-set']
     originalElements = os.listdir(folder)
 
+    change = 0
+    skip = 0
+    error = 0
+    click.secho(f"{originalElements} in total")
     for element in originalElements:
-        click.secho("===================", fg="blue")
+        click.secho("=====================", fg="blue")
         click.secho("Original : " + element, fg="blue")
         alteredElement = element
         if os.path.isdir(f"./{folder}/{element}"): # If DIRECTORY
@@ -109,9 +113,18 @@ def cli(folder, apply):
         elif os.path.isfile(f"./{folder}/{element}"): # IF FILE
             alteredElement = apply_file_rules(alteredElement, fileRules, sets)
         create_meta_file(folder, element, alteredElement)
-
-        
-        click.secho("New : " + alteredElement, fg="green")
+        if os.path.exists(f"{folder}/{alteredElement}") or alteredElement == element:
+            skip = skip + 1
+        else:
+            os.rename(f"{folder}/{element}",f"{folder}/{alteredElement}")
+            if os.path.exists(f"{folder}/{element}") == False and os.path.exists(f"{folder}/{alteredElement}"):
+                click.secho("New : " + alteredElement, fg="green")
+            else:
+                error = error + 1
+    
+    click.secho(f"{change} element(s) changed", fg="green")
+    click.secho(f"{skip} element(s) skipped", fg="blue")
+    click.secho(f"{error} element(s) failed", fg="red")
 
     return
     print('Content of \'%s\' folder will be cleaned' % folder)
