@@ -102,7 +102,8 @@ def delete_folder(path):
 @click.option("--folder", default='.', help='This is the folder which the content will be cleaned')
 @click.option("--apply", "-a", is_flag=True, default=False, help="When enable, apply modification")
 @click.option("--delete", "-d", is_flag=True, default=False, help="Delete empty folders")
-def cli(folder, apply, delete):
+@click.option("--meta", "-m", is_flag=True, default=False, help="Create meta file, include in apply")
+def cli(folder, apply, delete, meta):
     """Allow to clean folder elements' name"""
     click.secho("===== ## HORN CLEANER ## ======", fg="blue")
     data = read_cli_config()
@@ -152,13 +153,16 @@ def cli(folder, apply, delete):
                     change = change + 1
                 else:
                     error = error + 1
+        elif meta:
+            create_meta_file(folder, element, altered_element)
 
     click.secho(f"{change} element(s) changed", fg="green")
     click.secho(f"{skip} element(s) skipped", fg="blue")
     click.secho(f"{remove} element(s) deleted", fg="blue")
     click.secho(f"{error} element(s) failed", fg="red")
     click.secho(f"{ignore} element(s) ignored", fg="white")
-    click.secho("The following folders couldn't be deleted")
-    print(delete_fail)
+    if len(delete_fail) > 0:
+        click.secho("The following folders couldn't be deleted")
+        print(delete_fail)
 
     return
