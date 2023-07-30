@@ -1,6 +1,7 @@
 {
     "cli": [
         "folder-rules": [],
-        "file-rules": []
+        "file-rules": [],
+        "extension-set": {}
     ]
 }
