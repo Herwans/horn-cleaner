@@ -38,7 +38,7 @@ pip install <file>.whl
 ## Usage example
 ```bash
 # Apply the name cleaning and delete the empty folders
-hcleaner <directory> --apply --delete
+hcleaner --folder=<directory> --apply --delete
 ```
 
 ## Authors
