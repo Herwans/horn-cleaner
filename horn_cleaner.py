@@ -121,7 +121,7 @@ def cli(folder, apply, delete):
     delete_fail = []
     ignore = 0
     remove = 0
-    click.secho(f"{original_elements} in total")
+    click.secho(f"{len(original_elements)} in total")
     for element in original_elements:
         if os.path.splitext(element)[1] == ".json":
             ignore = ignore + 1
