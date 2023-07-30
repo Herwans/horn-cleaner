@@ -43,13 +43,10 @@ def apply_folder_rules(element, rules):
 
 
 def apply_file_rules(element, rules, sets):
-    click.secho("File", fg="blue")
     file_name, file_extension = os.path.splitext(element)
     altered_element = file_name
-    click.secho(element, fg="red")
     for rule in rules:
         if rule[2] == '*' or file_extension.lstrip(".") in sets[rule[2]]:
-            click.secho(altered_element, fg="red")
             altered_element = altered_element.strip()
             altered_element = re.sub(rule[0], rule[1], altered_element)
     altered_element = altered_element.strip()
