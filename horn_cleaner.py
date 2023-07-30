@@ -46,7 +46,12 @@ def apply_file_rules(element, rules, sets):
     file_name, file_extension = os.path.splitext(element)
     altered_element = file_name
     for rule in rules:
-        if rule[2] == '*' or file_extension.lstrip(".") in sets[rule[2]]:
+        if len(rule) == 4:
+            exclusion = rule[3].split(',')
+        else:
+            exclusion = []
+        if (rule[2] == '*' or file_extension.lstrip(".") in sets[rule[2]])\
+                and file_extension.lstrip(".") not in exclusion:
             altered_element = altered_element.strip()
             altered_element = re.sub(rule[0], rule[1], altered_element)
     altered_element = altered_element.strip()
