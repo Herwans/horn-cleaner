@@ -3,6 +3,7 @@ __pycache__/
 build/
 dist/
 sample/
+.idea/
 
 *.egg-info/
 config.json

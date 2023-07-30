@@ -16,11 +16,12 @@ def calculate_file_hash(file_path, hash_algorithm='sha256'):
     except FileNotFoundError:
         return None
 
+
 def read_cli_config():
     path = None
-    defaultPath = f"{pathlib.Path.home()}/.horn/config.json"
-    if os.path.exists(defaultPath) and os.path.isfile(defaultPath):
-        path = defaultPath
+    default_path = f"{pathlib.Path.home()}/.horn/config.json"
+    if os.path.exists(default_path) and os.path.isfile(default_path):
+        path = default_path
     elif os.path.exists("config.json") and os.path.isfile("config.json"):
         path = "config.json"
 
@@ -30,69 +31,72 @@ def read_cli_config():
             return data["cli"]
     return None
 
+
 def apply_folder_rules(element, rules):
-    alteredElement = element
+    altered_element = element
     for rule in rules:
         # 0 = Pattern
         # 1 = Replacement
-        alteredElement = re.sub(rule[0], rule[1], alteredElement)
-    alteredElement= alteredElement.strip()
-    return alteredElement
+        altered_element = re.sub(rule[0], rule[1], altered_element)
+    altered_element = altered_element.strip()
+    return altered_element
+
 
 def apply_file_rules(element, rules, sets):
     click.secho("File", fg="blue")
-    alteredElement = element
     file_name, file_extension = os.path.splitext(element)
-    alteredElement = file_name
+    altered_element = file_name
     click.secho(element, fg="red")
     for rule in rules:
         if rule[2] == '*' or file_extension.lstrip(".") in sets[rule[2]]:
-            click.secho(alteredElement, fg="red")
-            alteredElement = alteredElement.strip()
-            alteredElement = re.sub(rule[0], rule[1], alteredElement)
-    alteredElement= alteredElement.strip()
-    return alteredElement + file_extension
+            click.secho(altered_element, fg="red")
+            altered_element = altered_element.strip()
+            altered_element = re.sub(rule[0], rule[1], altered_element)
+    altered_element = altered_element.strip()
+    return altered_element + file_extension
 
-def create_meta_file(folder, currentName, newName):
-    path = f"{folder}/{currentName}"
+
+def create_meta_file(folder, current_name, new_name):
+    global metadata_path, element_type
+    path = f"{folder}/{current_name}"
     if os.path.exists(path):
         if os.path.isfile(path):
-            type = "file"
-            metaPath = f"{folder}/{calculate_file_hash(path)}.json"
-            if os.path.exists(metaPath):
+            element_type = "file"
+            metadata_path = f"{folder}/{calculate_file_hash(path)}.json"
+            if os.path.exists(metadata_path):
                 click.echo("Updating meta file...")
-                with open(metaPath, 'r') as f:
+                with open(metadata_path, 'r') as f:
                     metadata = json.load(f)
             else:
                 click.echo("Creating meta file...")
-                metadata = {}
-                metadata["original_name"] = currentName
-            metadata["new_name"] = newName
+                metadata = {"original_name": current_name}
+            metadata["new_name"] = new_name
         elif os.path.isdir(path):
-            type = "folder"
-            metaPath = f"{folder}/{currentName}/meta.json"
-            click.secho(metaPath)
-            if os.path.exists(metaPath):
+            element_type = "folder"
+            metadata_path = f"{folder}/{current_name}/meta.json"
+            click.secho(metadata_path)
+            if os.path.exists(metadata_path):
                 click.echo("Updating meta file...")
-                with open(metaPath, 'r') as f:
+                with open(metadata_path, 'r') as f:
                     metadata = json.load(f)
             else:
                 click.echo("Creating meta file...")
-                metadata = {}
-                metadata["original_name"] = currentName
-            metadata["new_name"] = newName
-        with open(metaPath, "w") as f:
+                metadata = {"original_name": current_name}
+            metadata["new_name"] = new_name
+        with open(metadata_path, "w") as f:
             json.dump(metadata, f)
-        click.secho("It's a " + type)
+        click.secho("It's a " + element_type)
+
 
 def delete_folder(path):
     elements = os.listdir(path)
+    to_delete = pathlib.Path(path)
     if len(elements) == 0:
-        pathlib.Path.rmdir(path)
+        pathlib.Path.rmdir(to_delete)
         return True
     elif len(elements) == 1 and elements[0] == "meta.json":
         os.remove(path + "/meta.json")
-        pathlib.Path.rmdir(path)
+        pathlib.Path.rmdir(to_delete)
         return True
     return False
 
@@ -108,53 +112,56 @@ def cli(folder, apply, delete):
     if data is None:
         click.secho("No rules found", fg="red")
         return
-    
-    folderRules = data['folder-rules']
-    fileRules = data['file-rules']
+
+    folder_rules = data['folder-rules']
+    file_rules = data['file-rules']
     sets = data['extension-set']
-    originalElements = os.listdir(folder)
+    original_elements = os.listdir(folder)
 
     change = 0
     skip = 0
     error = 0
+    delete_fail = []
     ignore = 0
     remove = 0
-    click.secho(f"{originalElements} in total")
-    for element in originalElements:
+    click.secho(f"{original_elements} in total")
+    for element in original_elements:
         if os.path.splitext(element)[1] == ".json":
             ignore = ignore + 1
             continue
 
         click.secho("=====================", fg="blue")
         click.secho("Original : \t" + element, fg="yellow")
-        alteredElement = element
-        if os.path.isdir(f"./{folder}/{element}"): # If DIRECTORY
+        altered_element = element
+        if os.path.isdir(f"./{folder}/{element}"):  # If DIRECTORY
             if delete and delete_folder(f"./{folder}/{element}"):
                 remove = remove + 1
                 continue
             else:
-                alteredElement = apply_folder_rules(alteredElement, folderRules)
-        elif os.path.isfile(f"./{folder}/{element}"): # IF FILE
-            alteredElement = apply_file_rules(alteredElement, fileRules, sets)
+                altered_element = apply_folder_rules(altered_element, folder_rules)
+        elif os.path.isfile(f"./{folder}/{element}"):  # IF FILE
+            altered_element = apply_file_rules(altered_element, file_rules, sets)
 
-        click.secho("New : \t\t" + alteredElement, fg="blue")
+        click.secho("New : \t\t" + altered_element, fg="blue")
 
         if apply:
-            create_meta_file(folder, element, alteredElement)
-            if os.path.exists(f"{folder}/{alteredElement}") or alteredElement == element:
+            create_meta_file(folder, element, altered_element)
+            if os.path.exists(f"{folder}/{altered_element}") or altered_element == element:
                 skip = skip + 1
             else:
-                os.rename(f"{folder}/{element}",f"{folder}/{alteredElement}")
-                if os.path.exists(f"{folder}/{element}") == False and os.path.exists(f"{folder}/{alteredElement}"):
-                    click.secho("New : " + alteredElement, fg="green")
+                os.rename(f"{folder}/{element}", f"{folder}/{altered_element}")
+                if os.path.exists(f"{folder}/{element}") is False and os.path.exists(f"{folder}/{altered_element}"):
+                    click.secho("New : " + altered_element, fg="green")
+                    change = change + 1
                 else:
                     error = error + 1
-            
-        
+
     click.secho(f"{change} element(s) changed", fg="green")
     click.secho(f"{skip} element(s) skipped", fg="blue")
     click.secho(f"{remove} element(s) deleted", fg="blue")
     click.secho(f"{error} element(s) failed", fg="red")
     click.secho(f"{ignore} element(s) ignored", fg="white")
+    click.secho("The following folders couldn't be deleted")
+    print(delete_fail)
 
     return
