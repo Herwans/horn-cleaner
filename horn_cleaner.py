@@ -18,8 +18,9 @@ def calculate_file_hash(file_path, hash_algorithm='sha256'):
 
 def read_cli_config():
     path = None
-    if os.path.exists("~/.horn/config.json") and os.path.isfile("~/.horn/config.json"):
-        path = "~/.horn/config.json"
+    defaultPath = f"{pathlib.Path.home()}/.horn/config.json"
+    if os.path.exists(defaultPath) and os.path.isfile(defaultPath):
+        path = defaultPath
     elif os.path.exists("config.json") and os.path.isfile("config.json"):
         path = "config.json"
 
