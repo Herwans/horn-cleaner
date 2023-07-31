@@ -7,13 +7,16 @@ Small tools to clean file and folder name
 
 ```bash
 # Clone the project
-git clone https://link-to-project
+git clone https://github.com/Herwans/horn_cleaner
 
 # Go to the project directory
-cd my-project
+cd horn_cleaner
 
 # Create a virtual environment for the application
 # Avoid version conflict with others applications
+## Windows
+python -m venv .venv
+## Linux
 python3 -m venv .venv
 
 # Enable .venv
@@ -38,7 +41,7 @@ pip install <file>.whl
 ## Usage example
 ```bash
 # Apply the name cleaning and delete the empty folders
-hcleaner --folder=<directory> --apply --delete
+hcleaner rename <folder> --apply --delete
 ```
 
 ## Authors
