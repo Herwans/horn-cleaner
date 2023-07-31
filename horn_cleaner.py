@@ -55,6 +55,9 @@ def apply_file_rules(element, rules, sets):
             altered_element = altered_element.strip()
             altered_element = re.sub(rule[0], rule[1], altered_element)
     altered_element = altered_element.strip()
+
+    if altered_element == "":
+        return element
     return altered_element + file_extension
 
 
