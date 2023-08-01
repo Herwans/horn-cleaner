@@ -1,6 +1,6 @@
 import os
 import click
-from horn_cleaner.utils import utils
+from horn_cleaner.utils import utils, prompt
 
 
 @click.command()
@@ -10,18 +10,10 @@ from horn_cleaner.utils import utils
 @click.option("--meta", "-m", is_flag=True, default=False, help="Create meta file, include in apply")
 def rename(folder, apply, delete, meta):
     """Allow to clean folder elements' name"""
-    click.echo(f"{folder} folder content will be clean")
-    config = utils.read_cli_config()
-    if config is None:
-        click.secho("No rules found", fg="red")
-        return
-
-    folder_rules = config['folder-rules']
-    file_rules = config['file-rules']
-    extension_sets = config['extension-set']
+    prompt.line(f"{folder} folder content will be clean")
 
     original_elements = os.listdir(folder)
-    click.secho(f"{len(original_elements)} elements have been found")
+    prompt.line(f"{len(original_elements)} elements have been found")
 
     change = 0
     skip = 0
@@ -35,19 +27,19 @@ def rename(folder, apply, delete, meta):
             ignore = ignore + 1
             continue
 
-        click.secho("=====================", fg="blue")
-        click.secho("Original : \t" + element, fg="yellow")
+        prompt.info("=====================")
+        prompt.warn("Original : \t" + element)
         altered_element = element
         if os.path.isdir(f"./{folder}/{element}"):  # If DIRECTORY
             if delete and utils.delete_folder(f"./{folder}/{element}"):
                 remove = remove + 1
                 continue
             else:
-                altered_element = utils.apply_folder_rules(altered_element, folder_rules)
+                altered_element = utils.apply_folder_rules(altered_element)
         elif os.path.isfile(f"./{folder}/{element}"):  # IF FILE
-            altered_element = utils.apply_file_rules(altered_element, file_rules, extension_sets)
+            altered_element = utils.apply_file_rules(altered_element)
 
-        click.secho("New : \t\t" + altered_element, fg="blue")
+        prompt.info("New : \t\t" + altered_element)
 
         if apply:
             utils.create_meta_file(folder, element, altered_element)
@@ -56,20 +48,20 @@ def rename(folder, apply, delete, meta):
             else:
                 os.rename(f"{folder}/{element}", f"{folder}/{altered_element}")
                 if os.path.exists(f"{folder}/{element}") is False and os.path.exists(f"{folder}/{altered_element}"):
-                    click.secho("New : " + altered_element, fg="green")
+                    prompt.success("New : " + altered_element)
                     change = change + 1
                 else:
                     error = error + 1
         elif meta:
             utils.create_meta_file(folder, element, altered_element)
 
-    click.secho(f"{change} element(s) changed", fg="green")
-    click.secho(f"{skip} element(s) skipped", fg="blue")
-    click.secho(f"{remove} element(s) deleted", fg="blue")
-    click.secho(f"{error} element(s) failed", fg="red")
-    click.secho(f"{ignore} element(s) ignored", fg="white")
+    prompt.success(f"{change} element(s) changed")
+    prompt.info(f"{skip} element(s) skipped")
+    prompt.info(f"{remove} element(s) deleted")
+    prompt.alert(f"{error} element(s) failed")
+    prompt.line(f"{ignore} element(s) ignored")
     if len(delete_fail) > 0:
-        click.secho("The following folders couldn't be deleted")
+        prompt.line("The following folders couldn't be deleted")
         print(delete_fail)
 
     return
