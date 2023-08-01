@@ -1,11 +1,10 @@
 {
-    "cli": [
+    "cli": {
         "folder-rules": [],
         "file-rules": [],
         "extension-set": {},
         "extensions": {
             "images": []
         }
-
-    ]
+    }
 }
