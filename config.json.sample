@@ -4,7 +4,9 @@
         "file-rules": [],
         "extension-set": {},
         "extensions": {
-            "images": []
-        }
+            "images": [],
+            "videos": []
+        },
+        "to_delete":[]
     }
 }

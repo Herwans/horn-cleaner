@@ -36,3 +36,6 @@ class Configuration:
     def get_videos_extensions(self):
         return self.cliConfig["extensions"]["videos"]
 
+    def get_delete_pattern(self):
+        return self.cliConfig["to_delete"]
+
