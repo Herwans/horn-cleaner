@@ -4,6 +4,7 @@ import os
 import pathlib
 import re
 import click
+from PIL import Image
 
 
 def read_cli_config():
@@ -104,3 +105,18 @@ def calculate_file_hash(file_path, hash_algorithm='sha256'):
             return hasher.hexdigest()
     except FileNotFoundError:
         return None
+
+
+def is_image_corrupted(image_path, verbose=False):
+    try:
+        Image.open(image_path).verify()
+        return False
+    except (IOError, SyntaxError) as e:
+        if verbose:
+            print(f"Image {image_path} is corrupted")
+        return True
+
+
+def is_image(image_path):
+    image_extensions = read_cli_config()["extensions"]["images"]
+    return os.path.splitext(image_path)[1].strip('.') in image_extensions
