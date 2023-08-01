@@ -2,6 +2,10 @@
     "cli": [
         "folder-rules": [],
         "file-rules": [],
-        "extension-set": {}
+        "extension-set": {},
+        "extensions": {
+            "images": []
+        }
+
     ]
 }
