@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime
 
 import click
-from horn_cleaner.utils import utils
+from horn_cleaner.utils import utils, prompt
 
 
 @click.command()
@@ -24,21 +24,21 @@ def integrity(folder, delete, sub, verbose):
             if os.path.isdir(path):
                 corrupted, total = check_folder_content(path, verbose)
                 if corrupted > 0:
-                    click.secho(f"{sub_folder} contains {corrupted} corrupted images ({corrupted / total * 100 }%)")
+                    prompt.line(f"{sub_folder} contains {corrupted} corrupted images ({corrupted / total * 100 }%)")
                     if delete and corrupted == total:
                         if delete_corrupted_folder(path, corrupted, total):
-                            click.secho(f"{sub_folder} deleted")
+                            prompt.line(f"{sub_folder} deleted")
                         else:
-                            click.secho(f"{sub_folder} kept")
+                            prompt.line(f"{sub_folder} kept")
     else:
         corrupted, total = check_folder_content(folder, verbose)
         if corrupted > 0:
-            click.secho(f"{folder} contains {corrupted} corrupted images ({corrupted / total * 100 }%)")
+            prompt.line(f"{folder} contains {corrupted} corrupted images ({corrupted / total * 100 }%)")
             if delete and corrupted == total:
                 if delete_corrupted_folder(folder, corrupted, total):
-                    click.secho(f"{folder} deleted")
+                    prompt.line(f"{folder} deleted")
                 else:
-                    click.secho(f"{folder} kept")
+                    prompt.line(f"{folder} kept")
 
     return
 
@@ -59,7 +59,7 @@ def check_folder_content(folder, verbose):
 def delete_corrupted_folder(folder, corrupted, total):
     for element in os.listdir(folder):
         if element != "meta.json" and utils.is_image(element) is False and os.path.isfile(element) is False:
-            click.secho(element, fg="red")
+            prompt.alert(element)
             return False
     meta = f"{folder}/meta.json"
     metas = f"{pathlib.Path.home()}/.horn/meta_delete.json"
