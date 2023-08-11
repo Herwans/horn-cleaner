@@ -8,13 +8,12 @@ from horn_cleaner.utils.path import Path
 @click.argument("folder")
 @click.option("--apply", "-a", is_flag=True, default=False, help="When enable, apply modification")
 @click.option("--meta", "-m", is_flag=True, default=False, help="Create meta file, include in apply")
-@click.option("--no-video-meta", "-n", is_flag=True, default=False, help="Prevent meta file creation for video")
+@click.option("--no-meta", "-n", is_flag=True, default=False, help="Prevent meta file creation for file")
 @click.option("--delete", "-d", is_flag=True, default=False, help="Delete empty folders")
-def rename(folder, apply, meta, no_video_meta, delete):
+def rename(folder, apply, meta, no_meta, delete):
     """Allow to clean folder elements' name"""
     prompt.line(f"{folder} folder content will be clean")
     current = Path(folder)
-    original_elements = current.children()
     prompt.line(f"{current.count()} elements have been found")
 
     change = 0
@@ -24,39 +23,56 @@ def rename(folder, apply, meta, no_video_meta, delete):
     ignore = 0
     remove = 0
 
-    for element in original_elements:
-        if os.path.splitext(element)[1] == ".json":
+    for file in current.files(True):
+        if os.path.splitext(file)[1] == ".json":
             ignore = ignore + 1
             continue
 
-        prompt.info("=====================")
-        prompt.warn("Original : \t" + element)
-        altered_element = element
-        if os.path.isdir(f"./{folder}/{element}"):  # If DIRECTORY
-            if delete and utils.delete_folder(f"./{folder}/{element}"):
-                remove = remove + 1
-                continue
-            else:
-                altered_element = utils.apply_folder_rules(altered_element)
-        elif os.path.isfile(f"./{folder}/{element}"):  # IF FILE
-            altered_element = utils.apply_file_rules(altered_element)
+        new_file_name = utils.apply_file_rules(file)
 
-        prompt.info("New : \t\t" + altered_element)
+        path = f"{folder}/{file}"
+        new_path = f"{folder}/{new_file_name}"
 
-        if apply:
-            if not (no_video_meta and utils.is_video(f"./{folder}/{element}")):
-                utils.create_meta_file(folder, element, altered_element)
-            if os.path.exists(f"{folder}/{altered_element}") or altered_element == element:
-                skip = skip + 1
-            else:
-                os.rename(f"{folder}/{element}", f"{folder}/{altered_element}")
-                if os.path.exists(f"{folder}/{element}") is False and os.path.exists(f"{folder}/{altered_element}"):
-                    prompt.success("New : " + altered_element)
+        if os.path.exists(new_path):
+            skip = skip + 1
+        elif new_file_name != file:
+            prompt.info("=====================")
+            prompt.info("Old : \t" + file)
+            prompt.info("New : \t" + new_file_name)
+
+            if apply:
+                os.rename(path, new_path)
+                if os.path.exists(path) is False and os.path.exists(new_path):
                     change = change + 1
                 else:
                     error = error + 1
-        elif meta and not (no_video_meta and utils.is_video(f"./{folder}/{element}")):
-            utils.create_meta_file(folder, element, altered_element)
+        if (apply and not no_meta) or meta:
+            utils.create_meta_file(folder, file, new_file_name)
+
+    for fol in current.folders(True):
+        if apply and delete and utils.delete_folder(fol):
+            remove = remove + 1
+            continue
+
+        new_folder_name = utils.apply_folder_rules(fol)
+        path = f"{folder}/{fol}"
+        new_path = f"{folder}/{new_folder_name}"
+
+        if os.path.exists(new_path):
+            skip = skip + 1
+        elif new_folder_name != fol:
+            prompt.warn("=====================")
+            prompt.warn("Old : \t" + fol)
+            prompt.warn("New : \t" + new_folder_name)
+
+            if apply:
+                os.rename(path, new_path)
+                if os.path.exists(path) is False and os.path.exists(new_path):
+                    change = change + 1
+                else:
+                    error = error + 1
+        if apply or meta:
+            utils.create_meta_file(folder, fol, new_folder_name)
 
     prompt.success(f"{change} element(s) changed")
     prompt.info(f"{skip} element(s) skipped")
