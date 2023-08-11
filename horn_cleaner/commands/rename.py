@@ -1,19 +1,21 @@
 import os
 import click
 from horn_cleaner.utils import utils, prompt
+from horn_cleaner.utils.path import Path
 
 
 @click.command()
 @click.argument("folder")
 @click.option("--apply", "-a", is_flag=True, default=False, help="When enable, apply modification")
-@click.option("--delete", "-d", is_flag=True, default=False, help="Delete empty folders")
 @click.option("--meta", "-m", is_flag=True, default=False, help="Create meta file, include in apply")
-def rename(folder, apply, delete, meta):
+@click.option("--no-video-meta", "-n", is_flag=True, default=False, help="Prevent meta file creation for video")
+@click.option("--delete", "-d", is_flag=True, default=False, help="Delete empty folders")
+def rename(folder, apply, meta, no_video_meta, delete):
     """Allow to clean folder elements' name"""
     prompt.line(f"{folder} folder content will be clean")
-
-    original_elements = os.listdir(folder)
-    prompt.line(f"{len(original_elements)} elements have been found")
+    current = Path(folder)
+    original_elements = current.children()
+    prompt.line(f"{current.count()} elements have been found")
 
     change = 0
     skip = 0
@@ -42,7 +44,8 @@ def rename(folder, apply, delete, meta):
         prompt.info("New : \t\t" + altered_element)
 
         if apply:
-            utils.create_meta_file(folder, element, altered_element)
+            if not (no_video_meta and utils.is_video(f"./{folder}/{element}")):
+                utils.create_meta_file(folder, element, altered_element)
             if os.path.exists(f"{folder}/{altered_element}") or altered_element == element:
                 skip = skip + 1
             else:
@@ -52,7 +55,7 @@ def rename(folder, apply, delete, meta):
                     change = change + 1
                 else:
                     error = error + 1
-        elif meta:
+        elif meta and not (no_video_meta and utils.is_video(f"./{folder}/{element}")):
             utils.create_meta_file(folder, element, altered_element)
 
     prompt.success(f"{change} element(s) changed")
@@ -65,5 +68,3 @@ def rename(folder, apply, delete, meta):
         print(delete_fail)
 
     return
-
-

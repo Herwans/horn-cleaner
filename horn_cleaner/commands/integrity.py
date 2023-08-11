@@ -11,8 +11,7 @@ from horn_cleaner.utils import utils, prompt
 @click.command()
 @click.argument("folder")
 @click.option("--delete", "-d", is_flag=True, default=False, help="Delete fully corrupted folders")
-@click.option("--sub", "-s", is_flag=True, default=False,
-              help="Indicate to check the folders inside the indicated folder")
+@click.option("--sub", "-s", is_flag=True, default=False, help="Apply to the folder and it's sub folders")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Display the corrupted file name")
 def integrity(folder, delete, sub, verbose):
     """Allow to clean folder elements' name"""
