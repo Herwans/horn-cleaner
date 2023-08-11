@@ -15,8 +15,7 @@ to_delete = Configuration().get_delete_pattern()
 @click.argument("folder")
 @click.option("--apply", "-a", is_flag=True, default=False, help="Apply the change")
 @click.option("--sub", "-s", is_flag=True, default=False, help="Apply to the folder and it's sub folders")
-@click.option("--verbose", "-v", is_flag=True, default=False, help="Display more logs about the progress")
-def garbage(folder, apply, sub, verbose):
+def garbage(folder, apply, sub):
     """Remove empty folders, delete unwanted elements"""
 
     clean(folder, apply)
@@ -56,8 +55,8 @@ def move(folder, apply):
         if apply:
             for element in elements:
                 current = Path(element)
-                if not pathlib.Path(f"{folder}/../{current.name()}").exists():
-                    current.move(f"../{current.name()}")
+                if not pathlib.Path(f"{folder}{os.sep}..{os.sep}{current.name()}").exists():
+                    current.move(f"..{os.sep}{current.name()}")
             if path.count() == 0:
                 prompt.info(f"{folder} has been emptied")
             else:
@@ -71,6 +70,7 @@ def delete(folder, apply):
     path = Path(folder)
     if path.count() == 0:
         utils.delete_folder(folder)
+
 
 def is_to_delete(element):
     for pattern in to_delete:

@@ -24,35 +24,40 @@ class Path:
             return None
         return os.listdir(self.fullpath())
 
-    def files(self):
+    def files(self, no_parent=False):
         if not self.is_dir():
             return None
         files = []
         for element in self.children():
             if element == "meta.json":
                 continue
-            file = f"{self.__fullpath}/{element}"
+            file = f"{self.__fullpath}{os.sep}{element}"
             if os.path.isfile(file):
-                files.append(file)
+                if no_parent:
+                    files.append(element)
+                else:
+                    files.append(file)
         return files
 
-    def folders(self):
+    def folders(self, no_parent=False):
         if not self.is_dir():
             return None
         folders = []
         for element in self.children():
-            folder = f"{self.__fullpath}/{element}"
+            folder = f"{self.__fullpath}{os.sep}{element}"
             if os.path.isdir(folder):
-                folders.append(folder)
+                if no_parent:
+                    folders.append(element)
+                else:
+                    folders.append(folder)
         return folders
 
     def move(self, destination):
-        if destination.startswith("../"):
-            location = os.path.join('\\'.join(self.path().split('\\')[0:-1]), destination.split("/")[1])
+        if destination.startswith(".." + os.sep):
+            location = os.path.join(os.sep.join(self.path().split(os.sep)[0:-1]), destination.split(os.sep)[1])
         else:
             location = destination
-        print(location)
-        print(self.path() + location)
+
         pathlib.Path(self.fullpath()).rename(location)
 
     def exists(self):
