@@ -77,3 +77,5 @@ def is_to_delete(element):
         if re.search(pattern, element) is not None:
             return True
     return False
+
+
