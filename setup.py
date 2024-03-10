@@ -1,17 +1,19 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name='horn_cleaner',
-    version='1.0.0',
-    py_modules=['horn_cleaner'],
+    name='vulcan',
+    version='2.0.0',
+    packages=find_packages(),
     install_requires=[
         'click',
+        'setuptools',
+        'Pillow'
     ],
     entry_points='''
         [console_scripts]
-        hcleaner=horn_cleaner.cli:cli
+        vulcan=vulcan.cli:cli
     ''',
     author="Herwans Harvel",
     description="Small tools to clean file and folder name",
-    url="https://github.com/Herwans/horn_cleaner"
+    url="https://github.com/Herwans/vulcan"
 )

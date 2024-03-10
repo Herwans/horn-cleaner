@@ -1,5 +1,5 @@
 
-# Horn cleaner
+# Vulcan
 
 A small utility to clean file and folder name, and some additional features.
 
@@ -7,16 +7,16 @@ A small utility to clean file and folder name, and some additional features.
 ### On Windows
 ```bash
 # Clone the project
-git clone https://github.com/Herwans/horn_cleaner
+git clone https://github.com/Herwans/vulcan
 
 # Go to the project directory
-cd horn_cleaner
+cd vulcan
 
 # Create a virtual environment for the application
-python -m venv .venv
+python -m venv venv
 
 # Enable .venv
-.venv\scripts\activate
+.venv\Scripts\activate
 
 # In order to run the application, use pip to generate it
 pip install --editable .
@@ -25,10 +25,10 @@ pip install --editable .
 ### On Linux/MacOS
 ```bash
 # Clone the project
-git clone https://github.com/Herwans/horn_cleaner
+git clone https://github.com/Herwans/vulcan
 
 # Go to the project directory
-cd horn_cleaner
+cd vulcan
 
 # Create a virtual environment for the application
 # Avoid version conflict with others applications
@@ -51,7 +51,7 @@ pip install <file>.whl
 ```
 
 ## How to use it
-1. Copy config.json.sample to `~/.horn/config.json`
+1. Copy config.json.sample to `~/.vulcan/config.json`
 2. Fill the configuration fields :
    * **folder-rules** : contains the rules apply to folders. Format : `[ "regex", "replacement value" ]` 
    * **file-rules** : contains the rules apply to files. Format : `[ "regex", "replacement value", "extension-set name|*", "exclusion when *" ]`
