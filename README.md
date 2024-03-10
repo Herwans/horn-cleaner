@@ -85,10 +85,10 @@ pip install <file>.whl
 ## Usage example
 ```bash
 # Apply the name cleaning and delete the empty folders
-hcleaner rename <folder> --apply --delete
+vulcan rename <folder> --delete
 
 # Check the integrity of images from folder's subfolders
-hcleaner integrity <folder> -s
+vulcan integrity <folder> -s
 ```
 
 ## Authors
