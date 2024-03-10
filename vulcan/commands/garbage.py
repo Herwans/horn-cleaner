@@ -13,32 +13,32 @@ to_delete = Configuration().get_delete_pattern()
 
 @click.command()
 @click.argument("folder")
-@click.option("--apply", "-a", is_flag=True, default=False, help="Apply the change")
+@click.option("--dry-run", "-d", "dryrun", is_flag=True, default=False, help="Prevent modification")
 @click.option("--sub", "-s", is_flag=True, default=False, help="Apply to the folder and it's sub folders")
-def garbage(folder, apply, sub):
+def garbage(folder, dryrun, sub):
     """Remove empty folders, delete unwanted elements"""
 
-    clean(folder, apply)
+    clean(folder, dryrun)
 
     if sub:
         for element in Path(folder).folders():
-            clean(element, apply)
-            move(element, apply)
-            delete(element, apply)
+            clean(element, dryrun)
+            move(element, dryrun)
+            delete(element, dryrun)
 
 
-def clean(folder, apply):
+def clean(folder, dryrun):
     """Remove elements which match regex to be deleted"""
     for element in Path(folder).files():
         if is_to_delete(element):
-            if apply:
+            if dryrun is False:
                 os.remove(element)
                 prompt.alert(f"{element} deleted")
             else:
                 prompt.alert(f"{element} is candidate to deletion")
 
 
-def move(folder, apply):
+def move(folder, dryrun):
     """Empty folder when no other files nor folders present"""
     path = Path(folder)
 
@@ -52,7 +52,7 @@ def move(folder, apply):
             videos = videos + 1
 
     if videos == total:
-        if apply:
+        if dryrun is False:
             for element in elements:
                 current = Path(element)
                 if not pathlib.Path(f"{folder}{os.sep}..{os.sep}{current.name()}").exists():
@@ -65,11 +65,14 @@ def move(folder, apply):
             prompt.info(f"{folder} is candidate to simplification")
 
 
-def delete(folder, apply):
+def delete(folder, dryrun):
     """Delete folder when empty"""
     path = Path(folder)
     if path.count() == 0:
-        utils.delete_folder(folder)
+        if dryrun is False:
+            utils.delete_folder(folder)
+        else:
+            prompt.info(f"{folder} will be deleted")
 
 
 def is_to_delete(element):
